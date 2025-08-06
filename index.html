@@ -3,708 +3,960 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KursGenerator Pro - Aus Videos werden Kurse</title>
+    <title>KursGenerator Pro - Automatische Kurserstellung</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://js.stripe.com/v3/"></script>
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .glass-effect {
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .video-upload-area {
-            border: 2px dashed #d1d5db;
-            transition: all 0.3s ease;
-        }
-        .video-upload-area:hover {
-            border-color: #6366f1;
-            background-color: #f8fafc;
-        }
-        .progress-bar {
-            transition: width 0.5s ease;
-        }
-    </style>
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 font-sans">
     <!-- Navigation -->
-    <nav class="bg-white shadow-sm border-b">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center">
-                    <i class="fas fa-video text-2xl text-indigo-600 mr-3"></i>
-                    <span class="text-xl font-bold text-gray-900">KursGenerator Pro</span>
+    <nav class="bg-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-video text-purple-600 text-2xl"></i>
+                    <h1 class="text-xl font-bold text-gray-800">KursGenerator Pro</h1>
                 </div>
-                <div class="flex items-center space-x-4" id="navButtons">
-                    <button onclick="showLogin()" class="text-gray-600 hover:text-indigo-600">Anmelden</button>
-                    <button onclick="showPayment()" class="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700">Jetzt kaufen</button>
+                <div id="userNav" class="hidden items-center space-x-4">
+                    <span id="userName" class="text-gray-600"></span>
+                    <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Landing Page -->
-    <div id="landingPage" class="min-h-screen">
-        <!-- Hero Section -->
-        <section class="gradient-bg text-white py-20">
-            <div class="max-w-4xl mx-auto text-center px-4">
-                <h1 class="text-5xl font-bold mb-6">Verwandle deine Videos in professionelle Online-Kurse</h1>
-                <p class="text-xl mb-8 opacity-90">Komplett automatisch. KI-gestützt. In unter 2 Stunden fertig.</p>
-                <div class="bg-white bg-opacity-20 rounded-lg p-6 mb-8 glass-effect">
-                    <div class="flex items-center justify-center space-x-8 text-lg">
-                        <div class="flex items-center"><i class="fas fa-check text-green-300 mr-2"></i> Automatische Transkription</div>
-                        <div class="flex items-center"><i class="fas fa-check text-green-300 mr-2"></i> Kapitel-Generierung</div>
-                        <div class="flex items-center"><i class="fas fa-check text-green-300 mr-2"></i> Quiz-Erstellung</div>
-                        <div class="flex items-center"><i class="fas fa-check text-green-300 mr-2"></i> PDF-Export</div>
-                    </div>
+    <!-- Main Content -->
+    <div class="min-h-screen">
+        <!-- Login/Register Screen -->
+        <div id="authScreen" class="flex items-center justify-center min-h-screen bg-gradient-to-br from-purple-600 to-blue-600">
+            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+                <div class="text-center mb-8">
+                    <i class="fas fa-video text-purple-600 text-5xl mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800">KursGenerator Pro</h2>
+                    <p class="text-gray-600">Verwandle Videos in professionelle Kurse</p>
                 </div>
-                <button onclick="showPayment()" class="bg-yellow-500 text-gray-900 px-8 py-4 rounded-lg text-xl font-bold hover:bg-yellow-400 transition-colors">
-                    Jetzt für nur 499€ kaufen <i class="fas fa-arrow-right ml-2"></i>
-                </button>
-            </div>
-        </section>
 
-        <!-- Features Section -->
-        <section class="py-16 bg-white">
-            <div class="max-w-6xl mx-auto px-4">
-                <h2 class="text-3xl font-bold text-center mb-12">Was du bekommst</h2>
-                <div class="grid md:grid-cols-3 gap-8">
-                    <div class="text-center p-6 rounded-lg border hover:shadow-lg transition-shadow">
-                        <i class="fas fa-magic text-4xl text-indigo-600 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-3">KI-Powered Verarbeitung</h3>
-                        <p class="text-gray-600">Automatische Transkription und intelligente Kapitel-Aufteilung nach deinen Wünschen (3-40 Min.)</p>
-                    </div>
-                    <div class="text-center p-6 rounded-lg border hover:shadow-lg transition-shadow">
-                        <i class="fas fa-graduation-cap text-4xl text-green-600 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-3">Komplette Kursstruktur</h3>
-                        <p class="text-gray-600">Lernziele, Zusammenfassungen, Quiz-Fragen und Tests - alles automatisch generiert</p>
-                    </div>
-                    <div class="text-center p-6 rounded-lg border hover:shadow-lg transition-shadow">
-                        <i class="fas fa-file-pdf text-4xl text-red-600 mb-4"></i>
-                        <h3 class="text-xl font-bold mb-3">Professionelle PDFs</h3>
-                        <p class="text-gray-600">Kursskripte, Arbeitsblätter und Quiz-Sammlungen als hochwertige PDF-Dateien</p>
-                    </div>
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <h3 class="text-xl font-semibold mb-4">Anmelden</h3>
+                    <form onsubmit="login(event)">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Email
+                            </label>
+                            <input type="email" id="loginEmail" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Passwort
+                            </label>
+                            <input type="password" id="loginPassword" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700">
+                            Anmelden
+                        </button>
+                    </form>
+                    <p class="text-center mt-4">
+                        <span class="text-gray-600">Noch kein Account? </span>
+                        <button onclick="showRegister()" class="text-purple-600 hover:underline">Registrieren</button>
+                    </p>
+                </div>
+
+                <!-- Register Form -->
+                <div id="registerForm" class="hidden">
+                    <h3 class="text-xl font-semibold mb-4">Registrieren</h3>
+                    <form onsubmit="register(event)">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Name
+                            </label>
+                            <input type="text" id="registerName" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Email
+                            </label>
+                            <input type="email" id="registerEmail" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Passwort
+                            </label>
+                            <input type="password" id="registerPassword" required class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+                        <button type="submit" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700">
+                            Registrieren
+                        </button>
+                    </form>
+                    <p class="text-center mt-4">
+                        <span class="text-gray-600">Bereits registriert? </span>
+                        <button onclick="showLogin()" class="text-purple-600 hover:underline">Anmelden</button>
+                    </p>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Pricing Section -->
-        <section class="py-16 bg-gray-50">
-            <div class="max-w-4xl mx-auto px-4 text-center">
-                <h2 class="text-3xl font-bold mb-8">Einmalig kaufen, unbegrenzt nutzen</h2>
-                <div class="bg-white rounded-lg shadow-xl p-8 max-w-md mx-auto">
-                    <div class="text-5xl font-bold text-indigo-600 mb-4">499€</div>
-                    <div class="text-gray-600 mb-6">Einmalige Zahlung</div>
-                    <ul class="text-left space-y-3 mb-8">
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Unbegrenzte Video-Verarbeitung</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Alle Features inklusive</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>Lebenslanger Zugang</li>
-                        <li class="flex items-center"><i class="fas fa-check text-green-500 mr-3"></i>30 Tage Geld-zurück-Garantie</li>
+        <!-- Payment Screen -->
+        <div id="paymentScreen" class="hidden flex items-center justify-center min-h-screen bg-gradient-to-br from-green-600 to-blue-600">
+            <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+                <div class="text-center mb-8">
+                    <i class="fas fa-crown text-yellow-500 text-5xl mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-800">KursGenerator Pro</h2>
+                    <p class="text-gray-600">Einmalige Zahlung für lebenslangen Zugang</p>
+                </div>
+                
+                <div class="bg-gradient-to-r from-purple-600 to-blue-600 p-6 rounded-lg text-white mb-6">
+                    <h3 class="text-xl font-bold mb-2">Pro-Version</h3>
+                    <div class="text-3xl font-bold mb-4">499€</div>
+                    <ul class="space-y-2 text-sm">
+                        <li><i class="fas fa-check mr-2"></i>Unbegrenzte Video-Verarbeitung</li>
+                        <li><i class="fas fa-check mr-2"></i>KI-basierte Kurserstellung</li>
+                        <li><i class="fas fa-check mr-2"></i>PDF-Export</li>
+                        <li><i class="fas fa-check mr-2"></i>Quiz-Generierung</li>
+                        <li><i class="fas fa-check mr-2"></i>Lebenslanger Zugang</li>
                     </ul>
-                    <button onclick="showPayment()" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors">
-                        Jetzt kaufen
-                    </button>
                 </div>
-            </div>
-        </section>
-    </div>
 
-    <!-- Payment Page -->
-    <div id="paymentPage" class="min-h-screen py-16 hidden">
-        <div class="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
-            <h2 class="text-2xl font-bold mb-6 text-center">Zahlung abschließen</h2>
-            <div class="bg-gray-50 p-4 rounded-lg mb-6">
-                <div class="flex justify-between items-center">
-                    <span>KursGenerator Pro - Lebenslang</span>
-                    <span class="font-bold">499€</span>
-                </div>
-            </div>
-            <form id="payment-form">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2">E-Mail-Adresse</label>
-                    <input type="email" id="email" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2">Passwort erstellen</label>
-                    <input type="password" id="password" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div id="card-element" class="p-3 border border-gray-300 rounded-lg mb-4">
-                    <!-- Stripe Elements Card Input -->
-                </div>
-                <button type="submit" id="submit-button" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors">
-                    <span id="submit-text">499€ bezahlen</span>
-                    <i id="submit-spinner" class="fas fa-spinner fa-spin ml-2 hidden"></i>
+                <div id="card-element" class="p-3 border rounded-lg mb-4"></div>
+                <div id="card-errors" role="alert" class="text-red-500 text-sm mb-4"></div>
+                
+                <button id="submit-payment" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg hover:bg-green-700 font-semibold">
+                    <i class="fas fa-lock mr-2"></i>Jetzt für 499€ kaufen
                 </button>
-            </form>
-            <div class="mt-4 text-center">
-                <button onclick="showLanding()" class="text-indigo-600 hover:underline">← Zurück zur Startseite</button>
+                
+                <p class="text-xs text-gray-500 text-center mt-4">
+                    Sichere Zahlung über Stripe • 30 Tage Geld-zurück-Garantie
+                </p>
             </div>
         </div>
-    </div>
 
-    <!-- Login Page -->
-    <div id="loginPage" class="min-h-screen py-16 hidden">
-        <div class="max-w-md mx-auto bg-white rounded-lg shadow-xl p-8">
-            <h2 class="text-2xl font-bold mb-6 text-center">Anmelden</h2>
-            <form id="login-form">
-                <div class="mb-4">
-                    <label class="block text-sm font-medium mb-2">E-Mail-Adresse</label>
-                    <input type="email" id="login-email" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <div class="mb-6">
-                    <label class="block text-sm font-medium mb-2">Passwort</label>
-                    <input type="password" id="login-password" required class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors">
-                    Anmelden
-                </button>
-            </form>
-            <div class="mt-4 text-center">
-                <p class="text-gray-600">Noch kein Account? <button onclick="showPayment()" class="text-indigo-600 hover:underline">Jetzt kaufen</button></p>
-                <button onclick="showLanding()" class="text-indigo-600 hover:underline mt-2">← Zurück zur Startseite</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dashboard -->
-    <div id="dashboard" class="min-h-screen py-8 hidden">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="bg-white rounded-lg shadow-xl p-8">
-                <div class="flex justify-between items-center mb-8">
-                    <h1 class="text-3xl font-bold">KursGenerator Dashboard</h1>
-                    <button onclick="logout()" class="text-red-600 hover:underline">Abmelden</button>
-                </div>
-
-                <!-- Upload Section -->
-                <div id="uploadSection">
-                    <h2 class="text-xl font-bold mb-4">Neues Video hochladen</h2>
-                    <div class="video-upload-area p-12 text-center rounded-lg mb-6" id="dropZone">
-                        <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
-                        <p class="text-xl text-gray-600 mb-2">Video hier ablegen oder klicken zum Auswählen</p>
-                        <p class="text-gray-500">Unterstützt: MP4, MOV, AVI (max. 3 Stunden)</p>
-                        <input type="file" id="videoFile" accept="video/*" class="hidden">
+        <!-- Main App Screen -->
+        <div id="appScreen" class="hidden">
+            <!-- Dashboard -->
+            <div id="dashboard" class="max-w-7xl mx-auto px-4 py-8">
+                <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4">
+                        <i class="fas fa-tachometer-alt text-purple-600 mr-2"></i>Dashboard
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-6 rounded-lg text-white">
+                            <i class="fas fa-video text-2xl mb-2"></i>
+                            <h3 class="text-xl font-semibold">Neuen Kurs erstellen</h3>
+                            <p class="mt-2 opacity-90">Video hochladen und automatisch in Kurs verwandeln</p>
+                            <button onclick="showUpload()" class="mt-4 bg-white text-purple-600 px-4 py-2 rounded font-semibold hover:bg-gray-100">
+                                Los geht's
+                            </button>
+                        </div>
+                        <div class="bg-gradient-to-r from-green-500 to-teal-600 p-6 rounded-lg text-white">
+                            <i class="fas fa-book text-2xl mb-2"></i>
+                            <h3 class="text-xl font-semibold">Meine Kurse</h3>
+                            <p class="mt-2 opacity-90">Bereits erstellte Kurse verwalten</p>
+                            <button onclick="showCourses()" class="mt-4 bg-white text-green-600 px-4 py-2 rounded font-semibold hover:bg-gray-100">
+                                Anzeigen
+                            </button>
+                        </div>
+                        <div class="bg-gradient-to-r from-orange-500 to-red-600 p-6 rounded-lg text-white">
+                            <i class="fas fa-cog text-2xl mb-2"></i>
+                            <h3 class="text-xl font-semibold">Einstellungen</h3>
+                            <p class="mt-2 opacity-90">API-Keys und Konfiguration</p>
+                            <button onclick="showSettings()" class="mt-4 bg-white text-orange-600 px-4 py-2 rounded font-semibold hover:bg-gray-100">
+                                Konfigurieren
+                            </button>
+                        </div>
                     </div>
+                </div>
+            </div>
 
-                    <!-- Settings -->
-                    <div class="grid md:grid-cols-2 gap-6 mb-6">
-                        <div>
-                            <label class="block text-sm font-medium mb-2">Kapitel-Länge (Minuten)</label>
+            <!-- Upload Section -->
+            <div id="uploadSection" class="hidden max-w-4xl mx-auto px-4 py-8">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-cloud-upload-alt text-purple-600 mr-2"></i>Video hochladen
+                    </h2>
+                    
+                    <!-- Upload Form -->
+                    <div id="uploadForm">
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Kurs-Titel
+                            </label>
+                            <input type="text" id="courseTitle" placeholder="z.B. Online Marketing Masterclass" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                        </div>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Kapitel-Länge (Minuten)
+                            </label>
                             <div class="flex items-center space-x-4">
-                                <span class="text-sm">3</span>
-                                <input type="range" id="chapterLength" min="3" max="40" value="15" class="flex-1">
-                                <span class="text-sm">40</span>
-                                <span id="chapterValue" class="text-lg font-bold text-indigo-600">15 Min</span>
+                                <span class="text-sm text-gray-500">3 min</span>
+                                <input type="range" id="chapterLength" min="3" max="40" value="15" class="flex-1" oninput="updateChapterLength()">
+                                <span class="text-sm text-gray-500">40 min</span>
+                            </div>
+                            <div class="text-center mt-2">
+                                <span id="chapterLengthValue" class="text-lg font-semibold text-purple-600">15 Minuten</span>
                             </div>
                         </div>
-                        <div class="space-y-3">
-                            <label class="flex items-center">
-                                <input type="checkbox" id="generateObjectives" checked class="mr-2">
-                                <span>Lernziele generieren</span>
+
+                        <div class="mb-6">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Optionen
                             </label>
-                            <label class="flex items-center">
-                                <input type="checkbox" id="detailedSummary" checked class="mr-2">
-                                <span>Ausführliche Zusammenfassungen</span>
-                            </label>
+                            <div class="space-y-2">
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="generateLearningGoals" checked class="mr-2">
+                                    <span>Lernziele generieren</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="detailedSummary" checked class="mr-2">
+                                    <span>Ausführliche Zusammenfassungen</span>
+                                </label>
+                                <label class="flex items-center">
+                                    <input type="checkbox" id="generateQuiz" checked class="mr-2">
+                                    <span>Quiz-Fragen erstellen</span>
+                                </label>
+                            </div>
                         </div>
-                    </div>
 
-                    <button id="processBtn" onclick="processVideo()" disabled class="bg-indigo-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-indigo-700 transition-colors disabled:bg-gray-400">
-                        <i class="fas fa-play mr-2"></i> Video verarbeiten
-                    </button>
-                </div>
+                        <!-- Video Upload Area -->
+                        <div class="mb-6">
+                            <div id="dropZone" class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-purple-500 transition-colors cursor-pointer">
+                                <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
+                                <p class="text-xl text-gray-600 mb-2">Video hier ablegen oder klicken zum Auswählen</p>
+                                <p class="text-sm text-gray-500">Unterstützt: MP4, MOV, AVI (max. 3 Stunden)</p>
+                                <input type="file" id="videoFile" accept="video/*" class="hidden" onchange="handleFileSelect(event)">
+                            </div>
+                        </div>
 
-                <!-- Processing Section -->
-                <div id="processingSection" class="hidden">
-                    <h2 class="text-xl font-bold mb-4">Video wird verarbeitet...</h2>
-                    <div class="bg-gray-200 rounded-lg p-6">
-                        <div class="flex items-center justify-between mb-2">
-                            <span id="currentStep">Schritt 1: Video wird analysiert...</span>
-                            <span id="stepCounter">1 / 8</span>
+                        <!-- Selected File Info -->
+                        <div id="fileInfo" class="hidden mb-6 p-4 bg-blue-50 rounded-lg">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="fas fa-video text-blue-600 mr-2"></i>
+                                    <span id="fileName" class="font-medium"></span>
+                                </div>
+                                <span id="fileSize" class="text-sm text-gray-500"></span>
+                            </div>
                         </div>
-                        <div class="bg-gray-300 rounded-full h-3 mb-4">
-                            <div id="progressBar" class="bg-indigo-600 rounded-full h-3 progress-bar" style="width: 0%"></div>
-                        </div>
-                        <div class="text-center">
-                            <i class="fas fa-spinner fa-spin text-2xl text-indigo-600"></i>
-                            <p class="text-gray-600 mt-2">Geschätzte Verarbeitungszeit: <span id="estimatedTime">5-10 Minuten</span></p>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Results Section -->
-                <div id="resultsSection" class="hidden">
-                    <h2 class="text-xl font-bold mb-4">Kurs erfolgreich erstellt! 🎉</h2>
-                    <div class="grid md:grid-cols-2 gap-6">
-                        <div class="bg-green-50 border border-green-200 rounded-lg p-6">
-                            <h3 class="font-bold text-green-800 mb-3">Generierte Inhalte</h3>
-                            <ul class="space-y-2 text-green-700">
-                                <li><i class="fas fa-check mr-2"></i><span id="chapterCount">8 Kapitel</span> erstellt</li>
-                                <li><i class="fas fa-check mr-2"></i><span id="questionCount">45 Quiz-Fragen</span> generiert</li>
-                                <li><i class="fas fa-check mr-2"></i>Vollständiges Transkript aufbereitet</li>
-                                <li><i class="fas fa-check mr-2"></i>PDF-Dokumente erstellt</li>
-                            </ul>
-                        </div>
-                        <div class="space-y-3">
-                            <button onclick="downloadPDF('script')" class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition-colors">
-                                <i class="fas fa-file-pdf mr-2"></i> Kursskript herunterladen
-                            </button>
-                            <button onclick="downloadPDF('quiz')" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition-colors">
-                                <i class="fas fa-question-circle mr-2"></i> Quiz-Sammlung herunterladen
-                            </button>
-                            <button onclick="downloadPDF('workbook')" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition-colors">
-                                <i class="fas fa-book mr-2"></i> Arbeitsblätter herunterladen
-                            </button>
-                        </div>
-                    </div>
-                    <div class="mt-6 text-center">
-                        <button onclick="resetUpload()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition-colors">
-                            <i class="fas fa-plus mr-2"></i> Neues Video verarbeiten
+                        <button onclick="startProcessing()" class="w-full bg-purple-600 text-white py-3 px-6 rounded-lg hover:bg-purple-700 font-semibold text-lg">
+                            <i class="fas fa-magic mr-2"></i>Kurs erstellen
                         </button>
+                    </div>
+
+                    <!-- Processing Screen -->
+                    <div id="processingScreen" class="hidden text-center">
+                        <div class="mb-8">
+                            <i class="fas fa-cog fa-spin text-6xl text-purple-600 mb-4"></i>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Kurs wird erstellt...</h3>
+                            <p class="text-gray-600">Das kann 5-15 Minuten dauern. Bitte warten Sie.</p>
+                        </div>
+
+                        <div class="bg-gray-200 rounded-full h-4 mb-4">
+                            <div id="progressBar" class="bg-purple-600 h-4 rounded-full transition-all duration-500" style="width: 0%"></div>
+                        </div>
+
+                        <div id="progressSteps" class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span>Video analysieren...</span>
+                                <i id="step1" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Audio extrahieren...</span>
+                                <i id="step2" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Transkription erstellen...</span>
+                                <i id="step3" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Kapitel generieren...</span>
+                                <i id="step4" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Lernziele erstellen...</span>
+                                <i id="step5" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>Quiz generieren...</span>
+                                <i id="step6" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span>PDFs erstellen...</span>
+                                <i id="step7" class="fas fa-clock text-gray-400"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Screen -->
+                    <div id="resultsScreen" class="hidden">
+                        <div class="text-center mb-8">
+                            <i class="fas fa-check-circle text-6xl text-green-600 mb-4"></i>
+                            <h3 class="text-2xl font-bold text-gray-800 mb-2">Kurs erfolgreich erstellt!</h3>
+                            <p class="text-gray-600">Ihr professioneller Online-Kurs ist bereit.</p>
+                        </div>
+
+                        <div id="courseResults" class="space-y-4">
+                            <!-- Results will be populated here -->
+                        </div>
+
+                        <div class="mt-8 text-center">
+                            <button onclick="downloadAllFiles()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 mr-4">
+                                <i class="fas fa-download mr-2"></i>Alle Dateien herunterladen
+                            </button>
+                            <button onclick="createNewCourse()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700">
+                                <i class="fas fa-plus mr-2"></i>Neuen Kurs erstellen
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- History Section -->
-            <div class="bg-white rounded-lg shadow-xl p-8 mt-8">
-                <h2 class="text-xl font-bold mb-4">Verarbeitete Videos</h2>
-                <div id="videoHistory" class="space-y-4">
-                    <!-- History items will be populated here -->
+            <!-- Settings Section -->
+            <div id="settingsSection" class="hidden max-w-4xl mx-auto px-4 py-8">
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                        <i class="fas fa-cog text-purple-600 mr-2"></i>Einstellungen
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                OpenAI API Key
+                            </label>
+                            <input type="password" id="openaiKey" placeholder="sk-..." class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                            <p class="text-xs text-gray-500 mt-1">Benötigt für KI-basierte Transkription und Kurserstellung</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                Zusammenfassung-Stil
+                            </label>
+                            <select id="summaryStyle" class="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-purple-500">
+                                <option value="detailed">Ausführlich</option>
+                                <option value="concise">Prägnant</option>
+                                <option value="bullet">Stichpunkte</option>
+                            </select>
+                        </div>
+                        
+                        <button onclick="saveSettings()" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">
+                            <i class="fas fa-save mr-2"></i>Einstellungen speichern
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        // Global variables
-        let stripe;
-        let elements;
-        let currentUser = null;
-        let processedData = null;
-
-        // Initialize Stripe (replace with your public key)
-        const STRIPE_PUBLIC_KEY = 'pk_test_51234567890abcdef...'; // Replace with your actual Stripe public key
+        // Configuration
+        const OPENAI_API_KEY = 'sk-DEIN_OPENAI_KEY_HIER'; // Replace with your OpenAI API key
+        const STRIPE_PUBLISHABLE_KEY = 'pk_test_DEIN_STRIPE_KEY_HIER'; // Replace with your Stripe publishable key
         
+        // Initialize Stripe
+        const stripe = Stripe(STRIPE_PUBLISHABLE_KEY);
+        const elements = stripe.elements();
+        let card;
+
+        // Current user and selected file
+        let currentUser = null;
+        let selectedFile = null;
+        let currentCourse = null;
+
         // Initialize app
         document.addEventListener('DOMContentLoaded', function() {
-            // Check if user is logged in
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                currentUser = JSON.parse(savedUser);
-                if (currentUser.hasPurchased) {
-                    showDashboard();
-                }
-            }
-            
-            // Initialize file upload
-            setupFileUpload();
-            
-            // Initialize range slider
-            setupRangeSlider();
-            
-            // Initialize Stripe
-            initializeStripe();
+            checkUserStatus();
+            setupDropZone();
+            setupPaymentForm();
         });
 
-        // Navigation functions
-        function showLanding() {
-            hideAllPages();
-            document.getElementById('landingPage').classList.remove('hidden');
+        // Authentication functions
+        function checkUserStatus() {
+            const user = localStorage.getItem('currentUser');
+            const hasPaid = localStorage.getItem('hasPaid');
+            
+            if (user) {
+                currentUser = JSON.parse(user);
+                document.getElementById('userName').textContent = currentUser.name;
+                document.getElementById('userNav').classList.remove('hidden');
+                document.getElementById('userNav').classList.add('flex');
+                
+                if (hasPaid === 'true') {
+                    showApp();
+                } else {
+                    showPayment();
+                }
+            } else {
+                showAuth();
+            }
+        }
+
+        function showAuth() {
+            document.getElementById('authScreen').classList.remove('hidden');
+            document.getElementById('paymentScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
         }
 
         function showPayment() {
-            hideAllPages();
-            document.getElementById('paymentPage').classList.remove('hidden');
-            if (!stripe) initializeStripe();
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('paymentScreen').classList.remove('hidden');
+            document.getElementById('appScreen').classList.add('hidden');
+        }
+
+        function showApp() {
+            document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('paymentScreen').classList.add('hidden');
+            document.getElementById('appScreen').classList.remove('hidden');
+            showDashboard();
         }
 
         function showLogin() {
-            hideAllPages();
-            document.getElementById('loginPage').classList.remove('hidden');
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
         }
 
-        function showDashboard() {
-            hideAllPages();
-            document.getElementById('dashboard').classList.remove('hidden');
-            updateNavigation();
-            loadVideoHistory();
+        function showRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
         }
 
-        function hideAllPages() {
-            document.getElementById('landingPage').classList.add('hidden');
-            document.getElementById('paymentPage').classList.add('hidden');
-            document.getElementById('loginPage').classList.add('hidden');
-            document.getElementById('dashboard').classList.add('hidden');
-        }
-
-        function updateNavigation() {
-            const navButtons = document.getElementById('navButtons');
-            if (currentUser && currentUser.hasPurchased) {
-                navButtons.innerHTML = `
-                    <span class="text-gray-600">Willkommen, ${currentUser.email}</span>
-                    <button onclick="logout()" class="text-red-600 hover:text-red-800">Abmelden</button>
-                `;
-            }
-        }
-
-        // Stripe initialization
-        function initializeStripe() {
-            if (STRIPE_PUBLIC_KEY.includes('pk_test') || STRIPE_PUBLIC_KEY.includes('pk_live')) {
-                stripe = Stripe(STRIPE_PUBLIC_KEY);
-                elements = stripe.elements();
-                
-                const cardElement = elements.create('card');
-                cardElement.mount('#card-element');
-            }
-        }
-
-        // Payment handling
-        document.getElementById('payment-form').addEventListener('submit', async function(event) {
+        function login(event) {
             event.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            // Simple authentication (in production, use proper authentication)
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
             
-            if (!email || !password) {
-                alert('Bitte alle Felder ausfüllen');
+            if (user) {
+                currentUser = user;
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                checkUserStatus();
+            } else {
+                alert('Ungültige Anmeldedaten');
+            }
+        }
+
+        function register(event) {
+            event.preventDefault();
+            const name = document.getElementById('registerName').value;
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            
+            const users = JSON.parse(localStorage.getItem('users') || '[]');
+            
+            if (users.find(u => u.email === email)) {
+                alert('Email bereits registriert');
                 return;
             }
-
-            // Show loading
-            document.getElementById('submit-text').textContent = 'Verarbeitung...';
-            document.getElementById('submit-spinner').classList.remove('hidden');
             
-            // Simulate payment processing
-            setTimeout(() => {
-                // Create user account
-                currentUser = {
-                    email: email,
-                    password: password, // In real app, this would be hashed
-                    hasPurchased: true,
-                    purchaseDate: new Date().toISOString()
-                };
-                
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
-                
-                alert('Zahlung erfolgreich! Willkommen bei KursGenerator Pro!');
-                showDashboard();
-            }, 2000);
-        });
-
-        // Login handling
-        document.getElementById('login-form').addEventListener('submit', function(event) {
-            event.preventDefault();
+            const newUser = { name, email, password, id: Date.now() };
+            users.push(newUser);
+            localStorage.setItem('users', JSON.stringify(users));
             
-            const email = document.getElementById('login-email').value;
-            const password = document.getElementById('login-password').value;
-            
-            // Simple login check (in real app, this would be server-side)
-            const savedUser = localStorage.getItem('currentUser');
-            if (savedUser) {
-                const user = JSON.parse(savedUser);
-                if (user.email === email && user.password === password) {
-                    currentUser = user;
-                    showDashboard();
-                } else {
-                    alert('Falsche E-Mail oder Passwort');
-                }
-            } else {
-                alert('Kein Account gefunden. Bitte erst kaufen.');
-            }
-        });
+            currentUser = newUser;
+            localStorage.setItem('currentUser', JSON.stringify(newUser));
+            checkUserStatus();
+        }
 
         function logout() {
-            currentUser = null;
             localStorage.removeItem('currentUser');
-            showLanding();
-            location.reload();
+            currentUser = null;
+            showAuth();
         }
 
-        // File upload setup
-        function setupFileUpload() {
+        // Payment functions
+        function setupPaymentForm() {
+            if (!stripe || !elements) return;
+            
+            const style = {
+                base: {
+                    fontSize: '16px',
+                    color: '#424770',
+                    '::placeholder': {
+                        color: '#aab7c4',
+                    },
+                },
+            };
+
+            card = elements.create('card', { style: style });
+            card.mount('#card-element');
+
+            card.on('change', ({ error }) => {
+                const displayError = document.getElementById('card-errors');
+                if (error) {
+                    displayError.textContent = error.message;
+                } else {
+                    displayError.textContent = '';
+                }
+            });
+
+            document.getElementById('submit-payment').addEventListener('click', handlePayment);
+        }
+
+        async function handlePayment() {
+            const { token, error } = await stripe.createToken(card);
+
+            if (error) {
+                document.getElementById('card-errors').textContent = error.message;
+            } else {
+                // Simulate successful payment
+                localStorage.setItem('hasPaid', 'true');
+                localStorage.setItem('paymentToken', token.id);
+                showApp();
+                alert('Zahlung erfolgreich! Willkommen bei KursGenerator Pro!');
+            }
+        }
+
+        // App navigation
+        function showDashboard() {
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('settingsSection').classList.add('hidden');
+        }
+
+        function showUpload() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('settingsSection').classList.add('hidden');
+            resetUploadForm();
+        }
+
+        function showSettings() {
+            document.getElementById('dashboard').classList.add('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('settingsSection').classList.remove('hidden');
+            loadSettings();
+        }
+
+        function showCourses() {
+            alert('Meine Kurse Feature kommt bald!');
+        }
+
+        // File upload functions
+        function setupDropZone() {
             const dropZone = document.getElementById('dropZone');
             const fileInput = document.getElementById('videoFile');
-            const processBtn = document.getElementById('processBtn');
 
             dropZone.addEventListener('click', () => fileInput.click());
-            
-            dropZone.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                dropZone.style.borderColor = '#6366f1';
-                dropZone.style.backgroundColor = '#f8fafc';
-            });
-            
-            dropZone.addEventListener('dragleave', () => {
-                dropZone.style.borderColor = '#d1d5db';
-                dropZone.style.backgroundColor = 'transparent';
-            });
-            
-            dropZone.addEventListener('drop', (e) => {
-                e.preventDefault();
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleFileSelect(files[0]);
-                }
-                dropZone.style.borderColor = '#d1d5db';
-                dropZone.style.backgroundColor = 'transparent';
-            });
-            
-            fileInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleFileSelect(e.target.files[0]);
-                }
-            });
+            dropZone.addEventListener('dragover', handleDragOver);
+            dropZone.addEventListener('drop', handleDrop);
         }
 
-        function handleFileSelect(file) {
-            if (!file.type.startsWith('video/')) {
-                alert('Bitte nur Video-Dateien auswählen');
+        function handleDragOver(event) {
+            event.preventDefault();
+            event.currentTarget.classList.add('border-purple-500');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            event.currentTarget.classList.remove('border-purple-500');
+            const files = event.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect({ target: { files } });
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('video/')) {
+                selectedFile = file;
+                displayFileInfo(file);
+            } else {
+                alert('Bitte wählen Sie eine gültige Videodatei aus.');
+            }
+        }
+
+        function displayFileInfo(file) {
+            document.getElementById('fileName').textContent = file.name;
+            document.getElementById('fileSize').textContent = formatFileSize(file.size);
+            document.getElementById('fileInfo').classList.remove('hidden');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function updateChapterLength() {
+            const value = document.getElementById('chapterLength').value;
+            document.getElementById('chapterLengthValue').textContent = value + ' Minuten';
+        }
+
+        // Course processing functions
+        async function startProcessing() {
+            if (!selectedFile) {
+                alert('Bitte wählen Sie zuerst eine Videodatei aus.');
                 return;
             }
 
-            const maxSize = 2 * 1024 * 1024 * 1024; // 2GB
-            if (file.size > maxSize) {
-                alert('Datei zu groß. Maximum: 2GB');
-                return;
+            const title = document.getElementById('courseTitle').value || 'Mein Kurs';
+            const chapterLength = parseInt(document.getElementById('chapterLength').value);
+            const generateLearningGoals = document.getElementById('generateLearningGoals').checked;
+            const detailedSummary = document.getElementById('detailedSummary').checked;
+            const generateQuiz = document.getElementById('generateQuiz').checked;
+
+            document.getElementById('uploadForm').classList.add('hidden');
+            document.getElementById('processingScreen').classList.remove('hidden');
+
+            try {
+                await simulateProcessing();
+                const courseData = await generateCourse(title, chapterLength, generateLearningGoals, detailedSummary, generateQuiz);
+                showResults(courseData);
+            } catch (error) {
+                console.error('Processing error:', error);
+                alert('Fehler bei der Verarbeitung. Bitte versuchen Sie es erneut.');
+                resetUploadForm();
             }
-
-            document.getElementById('dropZone').innerHTML = `
-                <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
-                <p class="text-xl text-green-600 mb-2">Video ausgewählt: ${file.name}</p>
-                <p class="text-gray-500">Größe: ${(file.size / (1024 * 1024)).toFixed(1)} MB</p>
-            `;
-            
-            document.getElementById('processBtn').disabled = false;
         }
 
-        // Range slider setup
-        function setupRangeSlider() {
-            const slider = document.getElementById('chapterLength');
-            const valueDisplay = document.getElementById('chapterValue');
-            
-            slider.addEventListener('input', function() {
-                valueDisplay.textContent = this.value + ' Min';
-            });
-        }
-
-        // Video processing
-        async function processVideo() {
-            document.getElementById('uploadSection').classList.add('hidden');
-            document.getElementById('processingSection').classList.remove('hidden');
-            
-            const steps = [
-                'Video wird analysiert...',
-                'Audio wird extrahiert...',
-                'Transkription läuft...',
-                'Kapitel werden erstellt...',
-                'Lernziele werden generiert...',
-                'Quiz-Fragen werden erstellt...',
-                'Zusammenfassungen werden geschrieben...',
-                'PDF-Dateien werden generiert...'
-            ];
-            
-            let currentStepIndex = 0;
+        async function simulateProcessing() {
+            const steps = ['step1', 'step2', 'step3', 'step4', 'step5', 'step6', 'step7'];
             const progressBar = document.getElementById('progressBar');
-            const currentStepElement = document.getElementById('currentStep');
-            const stepCounter = document.getElementById('stepCounter');
-            
-            const interval = setInterval(() => {
-                const progress = ((currentStepIndex + 1) / steps.length) * 100;
+
+            for (let i = 0; i < steps.length; i++) {
+                await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 3000));
+                
+                const stepElement = document.getElementById(steps[i]);
+                stepElement.className = 'fas fa-check text-green-500';
+                
+                const progress = ((i + 1) / steps.length) * 100;
                 progressBar.style.width = progress + '%';
-                currentStepElement.textContent = steps[currentStepIndex];
-                stepCounter.textContent = `${currentStepIndex + 1} / ${steps.length}`;
-                
-                currentStepIndex++;
-                
-                if (currentStepIndex >= steps.length) {
-                    clearInterval(interval);
-                    finishProcessing();
-                }
-            }, 2000);
+            }
         }
 
-        function finishProcessing() {
-            // Simulate processing results
-            const chapterLength = document.getElementById('chapterLength').value;
-            const chapterCount = Math.ceil(180 / parseInt(chapterLength)); // Assuming 3 hour video
-            const questionCount = chapterCount * 6; // 6 questions per chapter
-            
-            document.getElementById('chapterCount').textContent = `${chapterCount} Kapitel`;
-            document.getElementById('questionCount').textContent = `${questionCount} Quiz-Fragen`;
-            
-            // Store processed data
-            processedData = {
-                chapterCount: chapterCount,
-                questionCount: questionCount,
-                processedAt: new Date().toISOString()
+        async function generateCourse(title, chapterLength, generateLearningGoals, detailedSummary, generateQuiz) {
+            // Simulate course generation with mock data
+            const mockTranscript = `
+                In diesem Video sprechen wir über die Grundlagen des Online Marketings.
+                Zunächst schauen wir uns die verschiedenen Kanäle an: Social Media, E-Mail Marketing, SEO und bezahlte Werbung.
+                Social Media Marketing ist besonders wichtig für die Markenbildung und Kundenbindung.
+                E-Mail Marketing hat noch immer eine der höchsten Conversion-Raten.
+                Suchmaschinenoptimierung hilft dabei, organisch gefunden zu werden.
+                Bezahlte Werbung kann schnelle Ergebnisse liefern, erfordert aber Budget.
+                Wichtig ist eine integrierte Strategie, die alle Kanäle miteinander verbindet.
+                Messen Sie regelmäßig Ihre Erfolge mit Analytics-Tools.
+                Testen Sie verschiedene Ansätze und optimieren Sie kontinuierlich.
+                Der Schlüssel zum Erfolg liegt in der Konsistenz und Geduld.
+            `;
+
+            const chapters = [
+                {
+                    title: "Einführung ins Online Marketing",
+                    duration: chapterLength,
+                    summary: detailedSummary ? 
+                        "In diesem Kapitel lernen Sie die Grundlagen des Online Marketings kennen. Wir besprechen die wichtigsten Kanäle wie Social Media, E-Mail Marketing, SEO und bezahlte Werbung. Sie erfahren, wie diese Kanäle funktionieren und welche Vorteile sie bieten." :
+                        "Grundlagen des Online Marketings und wichtigste Kanäle.",
+                    learningGoals: generateLearningGoals ? [
+                        "Die wichtigsten Online Marketing Kanäle benennen können",
+                        "Vor- und Nachteile verschiedener Kanäle verstehen",
+                        "Eine grundlegende Marketing-Strategie entwickeln"
+                    ] : [],
+                    quiz: generateQuiz ? [
+                        {
+                            question: "Welcher Online Marketing Kanal hat die höchste Conversion-Rate?",
+                            options: ["Social Media", "E-Mail Marketing", "SEO", "Bezahlte Werbung"],
+                            correct: 1,
+                            explanation: "E-Mail Marketing hat noch immer eine der höchsten Conversion-Raten."
+                        }
+                    ] : []
+                },
+                {
+                    title: "Social Media Marketing",
+                    duration: chapterLength,
+                    summary: detailedSummary ?
+                        "Social Media Marketing ist essentiell für moderne Unternehmen. Es ermöglicht direkte Kommunikation mit Kunden, Markenaufbau und Community-Building. Wir behandeln die wichtigsten Plattformen und ihre Besonderheiten." :
+                        "Social Media für Markenbildung und Kundenbindung nutzen.",
+                    learningGoals: generateLearningGoals ? [
+                        "Die richtige Social Media Plattform für Ihr Business wählen",
+                        "Engaging Content erstellen",
+                        "Community-Management betreiben"
+                    ] : [],
+                    quiz: generateQuiz ? [
+                        {
+                            question: "Wofür ist Social Media Marketing besonders wichtig?",
+                            options: ["Nur für Verkäufe", "Markenbildung und Kundenbindung", "Nur für große Unternehmen", "Ausschließlich für B2C"],
+                            correct: 1,
+                            explanation: "Social Media Marketing ist besonders wichtig für die Markenbildung und Kundenbindung."
+                        }
+                    ] : []
+                }
+            ];
+
+            return {
+                title,
+                transcript: mockTranscript,
+                chapters,
+                totalDuration: chapters.length * chapterLength
             };
-            
-            // Save to history
-            saveToHistory();
-            
-            document.getElementById('processingSection').classList.add('hidden');
-            document.getElementById('resultsSection').classList.remove('hidden');
         }
 
-        // PDF Generation
-        function downloadPDF(type) {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF();
+        function showResults(courseData) {
+            currentCourse = courseData;
             
-            let title, content;
-            
-            switch(type) {
-                case 'script':
-                    title = 'Kursskript';
-                    content = generateScriptContent();
-                    break;
-                case 'quiz':
-                    title = 'Quiz-Sammlung';
-                    content = generateQuizContent();
-                    break;
-                case 'workbook':
-                    title = 'Arbeitsblätter';
-                    content = generateWorkbookContent();
-                    break;
-            }
-            
-            // Add title
-            doc.setFontSize(20);
-            doc.text(title, 20, 20);
-            
-            // Add content
-            doc.setFontSize(12);
-            const lines = content.split('\n');
-            let y = 40;
-            
-            lines.forEach(line => {
-                if (y > 280) { // New page if needed
-                    doc.addPage();
-                    y = 20;
-                }
-                doc.text(line, 20, y);
-                y += 7;
-            });
-            
-            doc.save(`${title.toLowerCase().replace(' ', '_')}.pdf`);
-        }
+            document.getElementById('processingScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.remove('hidden');
 
-        function generateScriptContent() {
-            return `KAPITEL 1: Einführung
-Das ist der Inhalt des ersten Kapitels mit allen wichtigen Konzepten und Beispielen.
-
-Lernziele:
-- Verstehen der Grundlagen
-- Anwendung der Prinzipien
-- Praktische Umsetzung
-
-KAPITEL 2: Fortgeschrittene Techniken
-Hier folgt der Inhalt des zweiten Kapitels...
-
-[Weitere Kapitel folgen basierend auf der Video-Analyse]`;
-        }
-
-        function generateQuizContent() {
-            return `QUIZ - KAPITEL 1
-
-Frage 1: Was ist das Hauptziel dieses Kurses?
-a) Option A
-b) Option B
-c) Option C ✓
-d) Option D
-
-Erklärung: Die richtige Antwort ist C, weil...
-
-Frage 2: Welche Methode wird empfohlen?
-a) Methode 1 ✓
-b) Methode 2
-c) Methode 3
-d) Methode 4
-
-[Weitere Quiz-Fragen folgen...]`;
-        }
-
-        function generateWorkbookContent() {
-            return `ARBEITSBLÄTTER
-
-Übung 1: Grundlagen anwenden
-Beschreibung der Übung...
-
-Arbeitsbereich:
-_________________________________
-_________________________________
-_________________________________
-
-Übung 2: Praktische Anwendung
-Weitere Übung mit Arbeitsbereich...
-
-[Weitere Übungen folgen...]`;
-        }
-
-        function saveToHistory() {
-            let history = JSON.parse(localStorage.getItem('videoHistory') || '[]');
-            history.unshift({
-                id: Date.now(),
-                fileName: 'Video_' + Date.now(),
-                processedAt: new Date().toLocaleString('de-DE'),
-                chapterCount: processedData.chapterCount,
-                questionCount: processedData.questionCount
-            });
-            localStorage.setItem('videoHistory', JSON.stringify(history));
-        }
-
-        function loadVideoHistory() {
-            const history = JSON.parse(localStorage.getItem('videoHistory') || '[]');
-            const historyContainer = document.getElementById('videoHistory');
-            
-            if (history.length === 0) {
-                historyContainer.innerHTML = '<p class="text-gray-500">Noch keine Videos verarbeitet</p>';
-                return;
-            }
-            
-            historyContainer.innerHTML = history.map(item => `
-                <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                    <div>
-                        <h3 class="font-medium">${item.fileName}</h3>
-                        <p class="text-sm text-gray-600">${item.processedAt} • ${item.chapterCount} Kapitel • ${item.questionCount} Fragen</p>
-                    </div>
-                    <div class="flex space-x-2">
-                        <button onclick="downloadPDF('script')" class="text-red-600 hover:text-red-800">
-                            <i class="fas fa-file-pdf"></i>
-                        </button>
-                        <button onclick="downloadPDF('quiz')" class="text-blue-600 hover:text-blue-800">
-                            <i class="fas fa-question-circle"></i>
-                        </button>
+            const resultsContainer = document.getElementById('courseResults');
+            resultsContainer.innerHTML = `
+                <div class="bg-blue-50 p-6 rounded-lg mb-6">
+                    <h4 class="text-xl font-bold text-blue-800 mb-4">${courseData.title}</h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <strong>Kapitel:</strong> ${courseData.chapters.length}
+                        </div>
+                        <div>
+                            <strong>Gesamtdauer:</strong> ${courseData.totalDuration} Minuten
+                        </div>
+                        <div>
+                            <strong>Lernziele:</strong> ${courseData.chapters.reduce((sum, ch) => sum + ch.learningGoals.length, 0)}
+                        </div>
+                        <div>
+                            <strong>Quiz-Fragen:</strong> ${courseData.chapters.reduce((sum, ch) => sum + ch.quiz.length, 0)}
+                        </div>
                     </div>
                 </div>
-            `).join('');
+
+                <div class="space-y-4">
+                    ${courseData.chapters.map((chapter, index) => `
+                        <div class="border rounded-lg p-4">
+                            <h5 class="font-bold text-lg mb-2">Kapitel ${index + 1}: ${chapter.title}</h5>
+                            <p class="text-gray-600 mb-3">${chapter.summary}</p>
+                            
+                            ${chapter.learningGoals.length > 0 ? `
+                                <div class="mb-3">
+                                    <strong class="text-sm">Lernziele:</strong>
+                                    <ul class="list-disc list-inside text-sm text-gray-600 mt-1">
+                                        ${chapter.learningGoals.map(goal => `<li>${goal}</li>`).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${chapter.quiz.length > 0 ? `
+                                <div class="text-sm">
+                                    <strong>Quiz-Beispiel:</strong>
+                                    <p class="italic mt-1">"${chapter.quiz[0].question}"</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <button onclick="downloadPDF('transcript')" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm">
+                        <i class="fas fa-file-pdf mr-2"></i>Transkript PDF
+                    </button>
+                    <button onclick="downloadPDF('course')" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm">
+                        <i class="fas fa-file-pdf mr-2"></i>Kursskript PDF
+                    </button>
+                    <button onclick="downloadPDF('quiz')" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 text-sm">
+                        <i class="fas fa-file-pdf mr-2"></i>Quiz PDF
+                    </button>
+                    <button onclick="downloadPDF('goals')" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 text-sm">
+                        <i class="fas fa-file-pdf mr-2"></i>Lernziele PDF
+                    </button>
+                </div>
+            `;
         }
 
-        function resetUpload() {
-            document.getElementById('resultsSection').classList.add('hidden');
-            document.getElementById('uploadSection').classList.remove('hidden');
+        function downloadPDF(type) {
+            if (!currentCourse) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            switch (type) {
+                case 'transcript':
+                    generateTranscriptPDF(doc, currentCourse);
+                    break;
+                case 'course':
+                    generateCoursePDF(doc, currentCourse);
+                    break;
+                case 'quiz':
+                    generateQuizPDF(doc, currentCourse);
+                    break;
+                case 'goals':
+                    generateGoalsPDF(doc, currentCourse);
+                    break;
+            }
+        }
+
+        function generateTranscriptPDF(doc, course) {
+            doc.setFontSize(20);
+            doc.text('Transkript: ' + course.title, 20, 30);
             
-            document.getElementById('dropZone').innerHTML = `
-                <i class="fas fa-cloud-upload-alt text-6xl text-gray-400 mb-4"></i>
-                <p class="text-xl text-gray-600 mb-2">Video hier ablegen oder klicken zum Auswählen</p>
-                <p class="text-gray-500">Unterstützt: MP4, MOV, AVI (max. 3 Stunden)</p>
-            `;
+            doc.setFontSize(12);
+            const splitText = doc.splitTextToSize(course.transcript, 170);
+            doc.text(splitText, 20, 50);
             
-            document.getElementById('processBtn').disabled = true;
+            doc.save(`${course.title}_Transkript.pdf`);
+        }
+
+        function generateCoursePDF(doc, course) {
+            doc.setFontSize(20);
+            doc.text('Kursskript: ' + course.title, 20, 30);
+            
+            let y = 50;
+            doc.setFontSize(14);
+            
+            course.chapters.forEach((chapter, index) => {
+                if (y > 250) {
+                    doc.addPage();
+                    y = 30;
+                }
+                
+                doc.setFont(undefined, 'bold');
+                doc.text(`Kapitel ${index + 1}: ${chapter.title}`, 20, y);
+                y += 15;
+                
+                doc.setFont(undefined, 'normal');
+                doc.setFontSize(12);
+                const summaryText = doc.splitTextToSize(chapter.summary, 170);
+                doc.text(summaryText, 20, y);
+                y += summaryText.length * 5 + 10;
+                
+                if (chapter.learningGoals.length > 0) {
+                    doc.setFont(undefined, 'bold');
+                    doc.text('Lernziele:', 20, y);
+                    y += 10;
+                    
+                    doc.setFont(undefined, 'normal');
+                    chapter.learningGoals.forEach(goal => {
+                        const goalText = doc.splitTextToSize(`• ${goal}`, 165);
+                        doc.text(goalText, 25, y);
+                        y += goalText.length * 5 + 3;
+                    });
+                    y += 5;
+                }
+                
+                y += 10;
+            });
+            
+            doc.save(`${course.title}_Kursskript.pdf`);
+        }
+
+        function generateQuizPDF(doc, course) {
+            doc.setFontSize(20);
+            doc.text('Quiz: ' + course.title, 20, 30);
+            
+            let y = 50;
+            let questionNumber = 1;
+            
+            course.chapters.forEach(chapter => {
+                chapter.quiz.forEach(question => {
+                    if (y > 240) {
+                        doc.addPage();
+                        y = 30;
+                    }
+                    
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`${questionNumber}. ${question.question}`, 20, y);
+                    y += 10;
+                    
+                    doc.setFont(undefined, 'normal');
+                    question.options.forEach((option, index) => {
+                        const letter = String.fromCharCode(65 + index);
+                        doc.text(`${letter}) ${option}`, 25, y);
+                        y += 8;
+                    });
+                    
+                    y += 5;
+                    doc.setFont(undefined, 'italic');
+                    doc.text(`Antwort: ${String.fromCharCode(65 + question.correct)}`, 20, y);
+                    y += 8;
+                    const explanationText = doc.splitTextToSize(`Erklärung: ${question.explanation}`, 170);
+                    doc.text(explanationText, 20, y);
+                    y += explanationText.length * 5 + 15;
+                    
+                    questionNumber++;
+                });
+            });
+            
+            doc.save(`${course.title}_Quiz.pdf`);
+        }
+
+        function generateGoalsPDF(doc, course) {
+            doc.setFontSize(20);
+            doc.text('Lernziele: ' + course.title, 20, 30);
+            
+            let y = 50;
+            
+            course.chapters.forEach((chapter, index) => {
+                if (chapter.learningGoals.length > 0) {
+                    if (y > 250) {
+                        doc.addPage();
+                        y = 30;
+                    }
+                    
+                    doc.setFontSize(14);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(`Kapitel ${index + 1}: ${chapter.title}`, 20, y);
+                    y += 15;
+                    
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'normal');
+                    chapter.learningGoals.forEach(goal => {
+                        const goalText = doc.splitTextToSize(`• ${goal}`, 165);
+                        doc.text(goalText, 25, y);
+                        y += goalText.length * 5 + 3;
+                    });
+                    y += 10;
+                }
+            });
+            
+            doc.save(`${course.title}_Lernziele.pdf`);
+        }
+
+        function downloadAllFiles() {
+            if (!currentCourse) return;
+            
+            setTimeout(() => downloadPDF('transcript'), 100);
+            setTimeout(() => downloadPDF('course'), 1000);
+            setTimeout(() => downloadPDF('quiz'), 2000);
+            setTimeout(() => downloadPDF('goals'), 3000);
+        }
+
+        function createNewCourse() {
+            resetUploadForm();
+            showUpload();
+        }
+
+        function resetUploadForm() {
+            document.getElementById('uploadForm').classList.remove('hidden');
+            document.getElementById('processingScreen').classList.add('hidden');
+            document.getElementById('resultsScreen').classList.add('hidden');
+            document.getElementById('fileInfo').classList.add('hidden');
+            document.getElementById('courseTitle').value = '';
             document.getElementById('videoFile').value = '';
+            selectedFile = null;
+            currentCourse = null;
+        }
+
+        // Settings functions
+        function loadSettings() {
+            const openaiKey = localStorage.getItem('openaiKey') || '';
+            const summaryStyle = localStorage.getItem('summaryStyle') || 'detailed';
+            
+            document.getElementById('openaiKey').value = openaiKey;
+            document.getElementById('summaryStyle').value = summaryStyle;
+        }
+
+        function saveSettings() {
+            const openaiKey = document.getElementById('openaiKey').value;
+            const summaryStyle = document.getElementById('summaryStyle').value;
+            
+            localStorage.setItem('openaiKey', openaiKey);
+            localStorage.setItem('summaryStyle', summaryStyle);
+            
+            alert('Einstellungen gespeichert!');
         }
     </script>
-<script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"rayId":"96b203fcc83c35e4","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"version":"2025.7.0","token":"4edd5f8ec12a48cfa682ab8261b80a79"}' crossorigin="anonymous"></script>
 </body>
 </html>
-    <script id="html_badge_script1">
-        window.__genspark_remove_badge_link = "https://www.genspark.ai/api/html_badge/" +
-            "remove_badge?token=To%2FBnjzloZ3UfQdcSaYfDhYkgxR%2FKo6%2Bs7jpQeTRssjsbG3iAqrKDzuqUsZIdReA1yN2g6mt3yNXmlYFtpERH7FwqQr1Tt%2BuWZPC%2Brtcf3C6dSuxDqXvfZtWbVMykRfZ0dJFS6JcbLTK3wg49PwC6AEpvEOyW2u6RPbkayGY6mktkVD%2FXsss%2FODgottTe966mDkBOx1a9ib1Gw4Ic%2FAiru%2Bfao6B8iAE83ELV%2BgWBNCq1%2FfsPG5SpXHgB%2BU%2B%2FX39Ukz3Dpr0%2FNIM%2B7ocg4YQMslDpzwp18lXgTqtOhXxBQIeP4q7jPv0fBmdEQPZKP4oQH2xuC9H%2BP5VckUNTBslgpOpI82iihCtjkErLvJfGJWNq4BQK9gub3Tqu9OlXovQ%2BSPRZRPqOGeTXP%2BfrFEeRT3eEp%2BkAvnZ4ZOcAibihp4x16TDiZVNoR871Fc4rggt04vlaTC0mJSha1mw1RL1mBSkB%2FZ01olFrfAHk2JSSDFpHu7K9bzEuVQ79CAKRuGyMHkKXIrY6bQrUP9JwHep5g%3D%3D";
-        window.__genspark_locale = "de-DE";
-        window.__genspark_token = "To/BnjzloZ3UfQdcSaYfDhYkgxR/Ko6+s7jpQeTRssjsbG3iAqrKDzuqUsZIdReA1yN2g6mt3yNXmlYFtpERH7FwqQr1Tt+uWZPC+rtcf3C6dSuxDqXvfZtWbVMykRfZ0dJFS6JcbLTK3wg49PwC6AEpvEOyW2u6RPbkayGY6mktkVD/Xsss/ODgottTe966mDkBOx1a9ib1Gw4Ic/Airu+fao6B8iAE83ELV+gWBNCq1/fsPG5SpXHgB+U+/X39Ukz3Dpr0/NIM+7ocg4YQMslDpzwp18lXgTqtOhXxBQIeP4q7jPv0fBmdEQPZKP4oQH2xuC9H+P5VckUNTBslgpOpI82iihCtjkErLvJfGJWNq4BQK9gub3Tqu9OlXovQ+SPRZRPqOGeTXP+frFEeRT3eEp+kAvnZ4ZOcAibihp4x16TDiZVNoR871Fc4rggt04vlaTC0mJSha1mw1RL1mBSkB/Z01olFrfAHk2JSSDFpHu7K9bzEuVQ79CAKRuGyMHkKXIrY6bQrUP9JwHep5g==";
-    </script>
-    
-    <script id="html_notice_dialog_script" src="https://www.genspark.ai/notice_dialog.js"></script>
-    
